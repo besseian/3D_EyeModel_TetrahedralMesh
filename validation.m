@@ -8,7 +8,10 @@
 clear;
 
 dt = 0.1;
-time = 30;
+time = 5;
+
+oldCreateTetrahedralMesh;
+springConstant;
 
 disp(1,:) = validate(5, time, dt);
 disp(2,:) = validate(10, time, dt);
@@ -72,12 +75,17 @@ PS(:, :) = P(:, 1, :);
 VS = 0*PS;
 
 % set initial force
+theta = 0;
+[InitVeloPoints, v_direction] = ImpactInitializer(theta);
 F_0 = Force / 1000;
 impactTime = 0.2;
-V_0 = (F_0*impactTime)/(numFront*m);
+[numInitPoints, ~] = size (InitVeloPoints);
 
-VS(frontPoints, :) = V_0*ff;
-%VS (frontPoints, :) = 5*ff;
+V_0 = (F_0*impactTime)/(numInitPoints*m);
+forces = [ones(numInitPoints, 3)]; % init forces
+forces = forces.*v_direction;
+
+VS(InitVeloPoints, :) = V_0*forces;
 
 % initialize runge-kutta matrices
 rungeKutta_Pos = zeros (numPoints, 3, 4);
@@ -170,9 +178,10 @@ end
 
 % get vectors to determine the distance from the initial position to the
 % new position at each time step for point 1
-distX (:) = P(1,1,1) - P(1,:,1);
-distY (:) = P(1,1,2) - P(1,:,2);
-distZ (:) = P(1,1,3) - P(1,:,3);
+cornealApexNode = 995;
+distX (:) = P(cornealApexNode,1,1) - P(cornealApexNode,:,1);
+distY (:) = P(cornealApexNode,1,2) - P(cornealApexNode,:,2);
+distZ (:) = P(cornealApexNode,1,3) - P(cornealApexNode,:,3);
 
 disp (:) = sqrt(distX(:).^2 + distY(:).^2 + distZ(:).^2);
 
